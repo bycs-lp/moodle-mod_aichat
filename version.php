@@ -18,7 +18,7 @@
  * Version information for mod_aichat.
  *
  * @package     mod_aichat
- * @copyright   2023-2025 ISB Bayern
+ * @copyright   2025 ISB Bayern
  * @author      Philipp Memmel
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_aichat';
 $plugin->release = '0.1';
-$plugin->version = 2025121300;
+$plugin->version = 2026011600;
 $plugin->requires = 2022112800;
 $plugin->supported = [501, 501];
 $plugin->maturity = MATURITY_BETA;
