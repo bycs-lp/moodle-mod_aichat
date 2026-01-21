@@ -26,7 +26,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = [
-
     'mod/aichat:addinstance' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
@@ -36,7 +35,6 @@ $capabilities = [
         ],
         'clonepermissionsfrom' => 'moodle/course:manageactivities',
     ],
-
     'mod/aichat:view' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,

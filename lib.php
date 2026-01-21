@@ -49,12 +49,16 @@ function aichat_update_instance($data): int {
 /**
  * Deletes an aichat instance.
  *
- * @param integer $id aichat record
+ * @param integer $id aichat record id
  * @return bool true on success
  */
 function aichat_delete_instance($id): bool {
     global $DB;
 
+    $cm = get_coursemodule_from_instance('aichat', $id);
+    $context = \context_module::instance($cm->id);
+    $DB->delete_records('block_ai_chat_personas_selected', ['contextid' => $context->id]);
+    $DB->delete_records('block_ai_chat_options', ['contextid' => $context->id]);
     return $DB->delete_records('aichat', ['id' => $id]);
 }
 
