@@ -48,3 +48,4 @@ $string['noaichatinstance'] = 'No instance of mod_aichat could be found.';
 $string['pluginadministration'] = 'AI chat administration';
 $string['pluginname'] = 'AI chat';
 $string['pluginname_userfaced'] = 'AI chatbot activity';
+$string['removeconversations'] = 'Delete all conversations';

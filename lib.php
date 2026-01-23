@@ -59,6 +59,9 @@ function aichat_delete_instance($id): bool {
     $context = \context_module::instance($cm->id);
     $DB->delete_records('block_ai_chat_personas_selected', ['contextid' => $context->id]);
     $DB->delete_records('block_ai_chat_options', ['contextid' => $context->id]);
+    // For now, we are only marking the conversations as deleted so they disappear in the chat.
+    // Anonymization and deletion will be implemented later once the AI manager will have a better way of handling statistics.
+    \local_ai_manager\ai_manager_utils::mark_log_entries_as_deleted('block_ai_chat', $context->id);
     return $DB->delete_records('aichat', ['id' => $id]);
 }
 
@@ -108,13 +111,12 @@ function aichat_supports($feature) {
  * Implementation of the function for printing the form elements that control
  * whether the course reset functionality affects the aichat activity.
  *
- * @param object $mform form passed by reference
+ * @param MoodleQuickForm $mform form passed by reference
  */
-// TODO Implement
-/*function aichat_reset_course_form_definition(&$mform): void {
+function aichat_reset_course_form_definition(&$mform): void {
     $mform->addElement('header', 'aichatactivityheader', get_string('modulenameplural', 'mod_aichat'));
-    $mform->addElement('advcheckbox', 'reset_aichat', get_string('reset_aichat', 'mod_aichat'));
-}*/
+    $mform->addElement('advcheckbox', 'reset_aichat', get_string('removeconversations', 'mod_aichat'));
+}
 
 /**
  * Course reset form defaults.
@@ -122,28 +124,45 @@ function aichat_supports($feature) {
  * @param stdClass $course the course object
  * @return array
  */
-// TODO Implement
-/*function aichat_reset_course_form_defaults(stdClass $course): array {
+function aichat_reset_course_form_defaults(stdClass $course): array {
     return [
         'reset_aichat' => 1,
     ];
-}*/
+}
 
 /**
  * This function is used by the reset_course_userdata function in moodlelib.
  *
- * @param object $data the data submitted from the reset course.
+ * @param stdClass $data the data submitted from the reset course.
  * @return array status array
  */
-// TODO Needs to implement a new function in \local_ai_manager\local\data_wiper to anonymize log records for a specific context.
-/*function aichat_reset_userdata($data) {
-    $status[] = [
-        'component' => get_string('modulenameplural', 'mod_aichat'),
-        'item' => get_string('reset_personal', 'mod_aichat'),
-        'error' => false,
-    ];
+function aichat_reset_userdata(stdClass $data): array {
+    global $DB;
+
+    $componentstr = get_string('modulenameplural', 'mod_aichat');
+    $status = [];
+
+    if (!empty($data->reset_aichat)) {
+        // Get all aichat instances in this course.
+        $aichats = $DB->get_records('aichat', ['course' => $data->courseid]);
+
+        foreach ($aichats as $aichat) {
+            $cm = get_coursemodule_from_instance('aichat', $aichat->id);
+            $context = \context_module::instance($cm->id);
+
+            // Mark all log entries for this aichat instance as deleted.
+            \local_ai_manager\ai_manager_utils::mark_log_entries_as_deleted('block_ai_chat', $context->id);
+        }
+
+        $status[] = [
+            'component' => $componentstr,
+            'item' => get_string('removeconversations', 'mod_aichat'),
+            'error' => false,
+        ];
+    }
+
     return $status;
-}*/
+}
 
 /**
  * Add custom completion.
