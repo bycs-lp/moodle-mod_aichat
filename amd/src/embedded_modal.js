@@ -21,5 +21,5 @@ export const init = async(contextid, uniqueId) => {
     const {html, js} = await Templates.renderForPromise('mod_aichat/embedded_modal', {uniqueId});
     const container = document.querySelector('[data-mod_aichat-element="embeddingmodalcontainer"]');
     Templates.replaceNodeContents(container, html, js);
-    await ReactiveInit.init(contextid, `[data-block_aichat-element="mainelement"][data-id="${uniqueId}"]`);
+    await ReactiveInit.init(contextid, `[data-block_aichat-element="mainelement"][data-id="${uniqueId}"]`, null, 'mod_aichat');
 };
