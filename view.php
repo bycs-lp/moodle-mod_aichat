@@ -41,6 +41,17 @@ $PAGE->set_title(get_string('pluginname', 'mod_aichat') . ' ' . $aichat->name);
 $PAGE->set_heading($aichat->name);
 $PAGE->add_body_class('limitedwidth');
 
+$params = [
+    'context' => $context,
+    'objectid' => $aichat->id,
+];
+
+$event = \mod_aichat\event\course_module_viewed::create($params);
+$event->add_record_snapshot('course_modules', $cm);
+$event->add_record_snapshot('course', $course);
+$event->add_record_snapshot('aichat', $aichat);
+$event->trigger();
+
 $completion = new completion_info($course);
 $completion->set_module_viewed($cm);
 

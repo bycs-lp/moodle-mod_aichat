@@ -10,6 +10,8 @@ It depends on block_ai_chat and basically wrapps an block_ai_chat instance in an
 
 https://github.com/bycs-lp/moodle-block_ai_chat, https://github.com/bycs-lp/moodle-local_ai_manager and https://github.com/bycs-lp/moodle-tiny_ai need to be installed.
 
+For being able to actually use AI tools, you will need to have a (paid) subscription to one of the AI services supported by local_ai_manager.
+
 ## Installing via uploaded ZIP file ##
 
 1. Log in to your Moodle site as an admin and go to _Site administration >

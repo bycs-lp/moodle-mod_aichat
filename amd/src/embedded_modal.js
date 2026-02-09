@@ -13,6 +13,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Module to initialize the aichat frontend.
+ *
+ * @module     mod_aichat/embedded_modal
+ * @copyright  2026 ISB Bayern
+ * @author     Philipp Memmel
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 import * as ReactiveInit from 'block_ai_chat/reactive_init';
 import Templates from 'core/templates';
 
