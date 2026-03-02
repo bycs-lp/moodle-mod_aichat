@@ -182,11 +182,6 @@ function aichat_get_coursemodule_info(stdClass $cm): cached_cm_info {
         if ($cm->showdescription) {
             $result->content = format_module_intro('aichat', $aichat, $cm->id, false);
         }
-
-        if ($cm->completion == COMPLETION_TRACKING_AUTOMATIC) {
-            $result->customdata['customcompletionrules']['completioncreate'] = $aichat->completioncreate;
-            $result->customdata['customcompletionrules']['completioncomplete'] = $aichat->completioncomplete;
-        }
     }
     return $result;
 }
