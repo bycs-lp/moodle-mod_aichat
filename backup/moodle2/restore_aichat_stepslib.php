@@ -27,6 +27,8 @@ use block_ai_chat\local\persona;
 class restore_aichat_structure_step extends restore_activity_structure_step {
     /**
      * Define structure.
+     *
+     * @return array
      */
     protected function define_structure() {
         $paths = [];

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * View a aichat instance
+ * View an aichat instance
  *
  * @package     mod_aichat
  * @copyright   2025 ISB Bayern

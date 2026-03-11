@@ -27,6 +27,7 @@
  * Define upgrade steps to be performed to upgrade the plugin from the old version to the current one.
  *
  * @param int $oldversion Version number the plugin is being upgraded from.
+ * @return bool
  */
 function xmldb_aichat_upgrade($oldversion) {
     global $DB;

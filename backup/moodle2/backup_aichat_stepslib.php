@@ -25,6 +25,8 @@
 class backup_aichat_structure_step extends backup_activity_structure_step {
     /**
      * Define structure.
+     *
+     * @return backup_nested_element
      */
     protected function define_structure() {
         $userinfo = $this->get_setting_value('users');
