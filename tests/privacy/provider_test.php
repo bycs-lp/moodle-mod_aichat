@@ -413,9 +413,11 @@ final class provider_test extends provider_testcase {
         $this->assertEquals(data_wiper::ANONYMIZE_STRING, $dbrecord2->prompttext);
         $this->assertEquals(data_wiper::ANONYMIZE_STRING, $dbrecord2->promptcompletion);
 
-        // Verify persona1 and its selection in the deleted context are gone.
-        $this->assertFalse($DB->record_exists('block_ai_chat_personas', ['id' => $persona1id]));
+        // Verify the selection of persona1 in the deleted context is gone.
         $this->assertFalse($DB->record_exists('block_ai_chat_personas_selected', ['id' => $selection1id]));
+        // Verify the persona still exists, because it is not data in this context but belongs to the user and could still
+        // be used in different contexts.
+        $this->assertTrue($DB->record_exists('block_ai_chat_personas', ['id' => $persona1id]));
 
         // Verify persona2 and its selection in other context are still there.
         $this->assertTrue($DB->record_exists('block_ai_chat_personas', ['id' => $persona2id]));
@@ -530,11 +532,11 @@ final class provider_test extends provider_testcase {
         $this->assertEquals('User 3 prompt', $dbrecord3->prompttext);
         $this->assertEquals('User 3 completion', $dbrecord3->promptcompletion);
 
-        // Verify user1's persona and its selection are deleted.
-        $this->assertFalse($DB->record_exists('block_ai_chat_personas', ['id' => $persona1id]));
+        // Verify the selection of user1's persona and the persona itself is deleted.
         $this->assertFalse($DB->record_exists('block_ai_chat_personas_selected', ['id' => $selection1id]));
+        $this->assertFalse($DB->record_exists('block_ai_chat_personas', ['id' => $persona1id]));
 
-        // Verify user2's persona is deleted.
+        // Verify user2's persona also has been deleted.
         $this->assertFalse($DB->record_exists('block_ai_chat_personas', ['id' => $persona2id]));
 
         // Verify user3's persona is not affected.

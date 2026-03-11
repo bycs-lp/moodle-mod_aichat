@@ -295,7 +295,8 @@ class provider implements
             foreach ($userpersonas as $persona) {
                 // Delete all selections of this persona first.
                 $DB->delete_records('block_ai_chat_personas_selected', ['personasid' => $persona->id]);
-                // Then delete the persona itself.
+                // Associated persona records must not be deleted, because they belong to the user and not the aichat instance
+                // context. They could even still be used by different aichat instances.
                 $DB->delete_records('block_ai_chat_personas', ['id' => $persona->id]);
             }
         }
@@ -330,10 +331,10 @@ class provider implements
         $selections = $DB->get_records('block_ai_chat_personas_selected', ['contextid' => $context->id]);
 
         foreach ($selections as $selection) {
-            // Delete the persona.
-            $DB->delete_records('block_ai_chat_personas', ['id' => $selection->personasid]);
             // Delete the selection.
             $DB->delete_records('block_ai_chat_personas_selected', ['id' => $selection->id]);
+            // Associated persona records must not be deleted, because they belong to the user and not the aichat instance
+            // context. They could even still be used by different aichat instances.
         }
     }
 
