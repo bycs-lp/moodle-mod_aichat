@@ -24,23 +24,23 @@
  */
 
 /**
- * Adds a new aichat instance
+ * Adds a new aichat instance.
  *
  * @param stdClass $data aichat record
- * @return int the aichat instance id
+ * @return int|false the aichat instance id or false if it could not been added
  */
-function aichat_add_instance($data): int {
+function aichat_add_instance($data): int|false {
     global $DB;
     return $DB->insert_record('aichat', $data);
 }
 
 /**
- * Updates an aichat instance
+ * Updates an aichat instance.
  *
  * @param stdClass $data aichat record
- * @return int the aichat instance id
+ * @return bool if the update was successful
  */
-function aichat_update_instance($data): int {
+function aichat_update_instance($data): bool {
     global $DB;
     $data->id = $data->instance;
     return $DB->update_record('aichat', $data);
@@ -181,11 +181,6 @@ function aichat_get_coursemodule_info(stdClass $cm): cached_cm_info {
 
         if ($cm->showdescription) {
             $result->content = format_module_intro('aichat', $aichat, $cm->id, false);
-        }
-
-        if ($cm->completion == COMPLETION_TRACKING_AUTOMATIC) {
-            $result->customdata['customcompletionrules']['completioncreate'] = $aichat->completioncreate;
-            $result->customdata['customcompletionrules']['completioncomplete'] = $aichat->completioncomplete;
         }
     }
     return $result;
