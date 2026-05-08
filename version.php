@@ -25,10 +25,10 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_aichat';
-$plugin->release = '0.2';
-$plugin->version = 2026031300;
+$plugin->release = '0.3';
+$plugin->version = 2026050800;
 $plugin->requires = 2022112800;
-$plugin->supported = [501, 501];
+$plugin->supported = [501, 502];
 $plugin->maturity = MATURITY_BETA;
 $plugin->dependencies = [
     'block_ai_chat' => 2026020100,
