@@ -61,7 +61,7 @@ function aichat_delete_instance($id): bool {
     $DB->delete_records('block_ai_chat_options', ['contextid' => $context->id]);
     // For now, we are only marking the conversations as deleted so they disappear in the chat.
     // Anonymization and deletion will be implemented later once the AI manager will have a better way of handling statistics.
-    \local_ai_manager\ai_manager_utils::mark_log_entries_as_deleted('block_ai_chat', $context->id);
+    \local_ai_manager\ai_manager_utils::mark_log_entries_as_deleted('mod_aichat', $context->id);
     return $DB->delete_records('aichat', ['id' => $id]);
 }
 
@@ -151,7 +151,7 @@ function aichat_reset_userdata(stdClass $data): array {
             $context = \context_module::instance($cm->id);
 
             // Mark all log entries for this aichat instance as deleted.
-            \local_ai_manager\ai_manager_utils::mark_log_entries_as_deleted('block_ai_chat', $context->id);
+            \local_ai_manager\ai_manager_utils::mark_log_entries_as_deleted('mod_aichat', $context->id);
         }
 
         $status[] = [

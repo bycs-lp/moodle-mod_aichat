@@ -28,6 +28,7 @@ use local_ai_manager\ai_manager_utils;
  * @covers    ::aichat_delete_instance
  */
 final class lib_test extends \advanced_testcase {
+    #[\PHPUnit\Framework\Attributes\Group('baseline')]
     /**
      * Test deleting a module instance.
      *
@@ -54,13 +55,13 @@ final class lib_test extends \advanced_testcase {
         $this->assertEquals(2, $DB->count_records('block_ai_chat_options'));
 
         // Verify both log entries exist and are not deleted before deletion using ai_manager_utils.
-        $logentriesaichat1 = ai_manager_utils::get_log_entries('block_ai_chat', $testdata->context1->id);
+        $logentriesaichat1 = ai_manager_utils::get_log_entries('mod_aichat', $testdata->context1->id);
         $this->assertCount(1, $logentriesaichat1);
         $logentry1retrieved = reset($logentriesaichat1);
         $this->assertEquals($testdata->logentry1->id, $logentry1retrieved->id);
         $this->assertEquals(0, $logentry1retrieved->deleted);
 
-        $logentriesaichat2 = ai_manager_utils::get_log_entries('block_ai_chat', $testdata->context2->id);
+        $logentriesaichat2 = ai_manager_utils::get_log_entries('mod_aichat', $testdata->context2->id);
         $this->assertCount(1, $logentriesaichat2);
         $logentry2retrieved = reset($logentriesaichat2);
         $this->assertEquals($testdata->logentry2->id, $logentry2retrieved->id);
@@ -99,20 +100,21 @@ final class lib_test extends \advanced_testcase {
         $this->assertEquals('10', $remainingoption->value);
 
         // Verify that the log entry for aichat 1 is marked as deleted using ai_manager_utils.
-        $logentriesaichat1afterdelete = ai_manager_utils::get_log_entries('block_ai_chat', $testdata->context1->id);
+        $logentriesaichat1afterdelete = ai_manager_utils::get_log_entries('mod_aichat', $testdata->context1->id);
         $this->assertCount(1, $logentriesaichat1afterdelete);
         $logentry1afterdelete = reset($logentriesaichat1afterdelete);
         $this->assertEquals($testdata->logentry1->id, $logentry1afterdelete->id);
         $this->assertEquals(1, $logentry1afterdelete->deleted);
 
         // Verify that the log entry for aichat 2 is still not deleted using ai_manager_utils.
-        $logentriesaichat2afterdelete = ai_manager_utils::get_log_entries('block_ai_chat', $testdata->context2->id);
+        $logentriesaichat2afterdelete = ai_manager_utils::get_log_entries('mod_aichat', $testdata->context2->id);
         $this->assertCount(1, $logentriesaichat2afterdelete);
         $logentry2afterdelete = reset($logentriesaichat2afterdelete);
         $this->assertEquals($testdata->logentry2->id, $logentry2afterdelete->id);
         $this->assertEquals(0, $logentry2afterdelete->deleted);
     }
 
+    #[\PHPUnit\Framework\Attributes\Group('baseline')]
     /**
      * Test resetting course data.
      *
@@ -129,13 +131,13 @@ final class lib_test extends \advanced_testcase {
         $testdata = $this->create_test_data($course);
 
         // Verify both log entries exist and are not deleted before reset.
-        $logentriesaichat1 = ai_manager_utils::get_log_entries('block_ai_chat', $testdata->context1->id);
+        $logentriesaichat1 = ai_manager_utils::get_log_entries('mod_aichat', $testdata->context1->id);
         $this->assertCount(1, $logentriesaichat1);
         $logentry1retrieved = reset($logentriesaichat1);
         $this->assertEquals($testdata->logentry1->id, $logentry1retrieved->id);
         $this->assertEquals(0, $logentry1retrieved->deleted);
 
-        $logentriesaichat2 = ai_manager_utils::get_log_entries('block_ai_chat', $testdata->context2->id);
+        $logentriesaichat2 = ai_manager_utils::get_log_entries('mod_aichat', $testdata->context2->id);
         $this->assertCount(1, $logentriesaichat2);
         $logentry2retrieved = reset($logentriesaichat2);
         $this->assertEquals($testdata->logentry2->id, $logentry2retrieved->id);
@@ -173,13 +175,13 @@ final class lib_test extends \advanced_testcase {
         $this->assertTrue($DB->record_exists('block_ai_chat_options', ['contextid' => $testdata->context2->id]));
 
         // Verify that log entries for both aichat instances are marked as deleted.
-        $logentriesaichat1afterreset = ai_manager_utils::get_log_entries('block_ai_chat', $testdata->context1->id);
+        $logentriesaichat1afterreset = ai_manager_utils::get_log_entries('mod_aichat', $testdata->context1->id);
         $this->assertCount(1, $logentriesaichat1afterreset);
         $logentry1afterreset = reset($logentriesaichat1afterreset);
         $this->assertEquals($testdata->logentry1->id, $logentry1afterreset->id);
         $this->assertEquals(1, $logentry1afterreset->deleted);
 
-        $logentriesaichat2afterreset = ai_manager_utils::get_log_entries('block_ai_chat', $testdata->context2->id);
+        $logentriesaichat2afterreset = ai_manager_utils::get_log_entries('mod_aichat', $testdata->context2->id);
         $this->assertCount(1, $logentriesaichat2afterreset);
         $logentry2afterreset = reset($logentriesaichat2afterreset);
         $this->assertEquals($testdata->logentry2->id, $logentry2afterreset->id);
@@ -248,14 +250,14 @@ final class lib_test extends \advanced_testcase {
         $aimanagergenerator = $this->getDataGenerator()->get_plugin_generator('local_ai_manager');
 
         $testdata->logentry1 = $aimanagergenerator->create_request_log_entry([
-            'component' => 'block_ai_chat',
+            'component' => 'mod_aichat',
             'contextid' => $testdata->context1->id,
             'value' => 100,
             'deleted' => 0,
         ]);
 
         $testdata->logentry2 = $aimanagergenerator->create_request_log_entry([
-            'component' => 'block_ai_chat',
+            'component' => 'mod_aichat',
             'contextid' => $testdata->context2->id,
             'value' => 200,
             'deleted' => 0,
