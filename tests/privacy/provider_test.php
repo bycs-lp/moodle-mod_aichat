@@ -16,6 +16,7 @@
 
 namespace mod_aichat\privacy;
 
+use block_ai_chat\local\persona;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\userlist;
@@ -172,6 +173,7 @@ final class provider_test extends provider_testcase {
         $this->assertEquals('What is AI?', $data->conversations[0]['prompttext']);
     }
 
+    #[\PHPUnit\Framework\Attributes\Group('baseline')]
     /**
      * Test deleting data for a user.
      */
@@ -211,30 +213,34 @@ final class provider_test extends provider_testcase {
         ]);
 
         // Create personas for user1.
-        // Persona 1: Used in a context (should be deleted along with the selection).
+        // Persona 1: Used in the approved context and in context2.
         $persona1id = $DB->insert_record('block_ai_chat_personas', [
             'userid' => $user1->id,
             'name' => 'Used Persona',
             'prompt' => 'You are a helpful assistant',
             'userinfo' => '',
-            'type' => 0,
+            'type' => persona::TYPE_USER,
             'timecreated' => time(),
             'timemodified' => time(),
         ]);
 
-        // Select persona1 in context2.
+        // Select persona1 in the approved context and in context2.
         $selectionid = $DB->insert_record('block_ai_chat_personas_selected', [
+            'contextid' => $context->id,
+            'personasid' => $persona1id,
+        ]);
+        $selection2id = $DB->insert_record('block_ai_chat_personas_selected', [
             'contextid' => $context2->id,
             'personasid' => $persona1id,
         ]);
 
-        // Persona 2: Not used anywhere (should also be deleted).
+        // Persona 2: Not used anywhere.
         $persona2id = $DB->insert_record('block_ai_chat_personas', [
             'userid' => $user1->id,
             'name' => 'Unused Persona',
             'prompt' => 'You are another assistant',
             'userinfo' => '',
-            'type' => 0,
+            'type' => persona::TYPE_USER,
             'timecreated' => time(),
             'timemodified' => time(),
         ]);
@@ -245,7 +251,7 @@ final class provider_test extends provider_testcase {
             'name' => 'User 2 Persona',
             'prompt' => 'You are user 2 assistant',
             'userinfo' => '',
-            'type' => 0,
+            'type' => persona::TYPE_USER,
             'timecreated' => time(),
             'timemodified' => time(),
         ]);
@@ -267,17 +273,68 @@ final class provider_test extends provider_testcase {
         $this->assertEquals('User 2 prompt', $dbrecord2->prompttext);
         $this->assertEquals('User 2 completion', $dbrecord2->promptcompletion);
 
-        // Verify persona1 (used) is deleted.
-        $this->assertFalse($DB->record_exists('block_ai_chat_personas', ['id' => $persona1id]));
-
-        // Verify the persona selection is also deleted.
+        // Verify the selection of persona1 in the approved context is deleted.
         $this->assertFalse($DB->record_exists('block_ai_chat_personas_selected', ['id' => $selectionid]));
 
-        // Verify persona2 (unused) is also deleted.
-        $this->assertFalse($DB->record_exists('block_ai_chat_personas', ['id' => $persona2id]));
+        // Verify the selection in the context which is not part of the approved contexts is still there.
+        $this->assertTrue($DB->record_exists('block_ai_chat_personas_selected', ['id' => $selection2id]));
 
-        // Verify persona3 (user2's persona) is not affected.
+        // Verify no persona record has been deleted.
+        $this->assertTrue($DB->record_exists('block_ai_chat_personas', ['id' => $persona1id]));
+        $this->assertTrue($DB->record_exists('block_ai_chat_personas', ['id' => $persona2id]));
         $this->assertTrue($DB->record_exists('block_ai_chat_personas', ['id' => $persona3id]));
+    }
+
+    #[\PHPUnit\Framework\Attributes\Group('baseline')]
+    /**
+     * Test that deleting data for a user and for users does not touch shared personas and selections outside the contexts.
+     */
+    public function test_delete_data_does_not_touch_shared_personas(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $aichat = $this->getDataGenerator()->create_module('aichat', ['course' => $course->id]);
+        $context = \context_module::instance(get_coursemodule_from_instance('aichat', $aichat->id)->id);
+        $aichat2 = $this->getDataGenerator()->create_module('aichat', ['course' => $course->id]);
+        $context2 = \context_module::instance(get_coursemodule_from_instance('aichat', $aichat2->id)->id);
+
+        // Both users own a site-wide persona template which is selected in both activities.
+        $templateids = [];
+        $selectionids = [];
+        foreach ([$user1, $user2] as $user) {
+            $templateids[$user->id] = $DB->insert_record('block_ai_chat_personas', [
+                'userid' => $user->id,
+                'name' => 'Template of user ' . $user->id,
+                'prompt' => 'You are a shared assistant',
+                'userinfo' => '',
+                'type' => persona::TYPE_TEMPLATE,
+                'timecreated' => time(),
+                'timemodified' => time(),
+            ]);
+            foreach ([$context, $context2] as $ctx) {
+                $selectionids[] = $DB->insert_record('block_ai_chat_personas_selected', [
+                    'contextid' => $ctx->id,
+                    'personasid' => $templateids[$user->id],
+                ]);
+            }
+        }
+
+        // The deletion only affects the first activity.
+        provider::delete_data_for_user(new approved_contextlist($user1, 'mod_aichat', [$context->id]));
+        $userlist = new userlist($context, 'mod_aichat');
+        $userlist->add_users([$user2->id]);
+        provider::delete_data_for_users(new approved_userlist($context, 'mod_aichat', $userlist->get_userids()));
+
+        // Neither the templates nor any selection of them, not even the one in the approved context, may be removed.
+        foreach ($templateids as $templateid) {
+            $this->assertTrue($DB->record_exists('block_ai_chat_personas', ['id' => $templateid]));
+        }
+        foreach ($selectionids as $selectionid) {
+            $this->assertTrue($DB->record_exists('block_ai_chat_personas_selected', ['id' => $selectionid]));
+        }
     }
 
     /**
@@ -424,6 +481,7 @@ final class provider_test extends provider_testcase {
         $this->assertTrue($DB->record_exists('block_ai_chat_personas_selected', ['id' => $selection2id]));
     }
 
+    #[\PHPUnit\Framework\Attributes\Group('baseline')]
     /**
      * Test deleting data for users.
      */
@@ -472,17 +530,21 @@ final class provider_test extends provider_testcase {
         ]);
 
         // Create personas for users.
-        // Persona for user1 (used in context2).
+        // Persona for user1 (selected in the approved context and in context2).
         $persona1id = $DB->insert_record('block_ai_chat_personas', [
             'userid' => $user1->id,
             'name' => 'User 1 Persona',
             'prompt' => 'You are user 1 assistant',
             'userinfo' => '',
-            'type' => 0,
+            'type' => persona::TYPE_USER,
             'timecreated' => time(),
             'timemodified' => time(),
         ]);
         $selection1id = $DB->insert_record('block_ai_chat_personas_selected', [
+            'contextid' => $context->id,
+            'personasid' => $persona1id,
+        ]);
+        $selection2id = $DB->insert_record('block_ai_chat_personas_selected', [
             'contextid' => $context2->id,
             'personasid' => $persona1id,
         ]);
@@ -493,7 +555,7 @@ final class provider_test extends provider_testcase {
             'name' => 'User 2 Persona',
             'prompt' => 'You are user 2 assistant',
             'userinfo' => '',
-            'type' => 0,
+            'type' => persona::TYPE_USER,
             'timecreated' => time(),
             'timemodified' => time(),
         ]);
@@ -504,7 +566,7 @@ final class provider_test extends provider_testcase {
             'name' => 'User 3 Persona',
             'prompt' => 'You are user 3 assistant',
             'userinfo' => '',
-            'type' => 0,
+            'type' => persona::TYPE_USER,
             'timecreated' => time(),
             'timemodified' => time(),
         ]);
@@ -532,14 +594,15 @@ final class provider_test extends provider_testcase {
         $this->assertEquals('User 3 prompt', $dbrecord3->prompttext);
         $this->assertEquals('User 3 completion', $dbrecord3->promptcompletion);
 
-        // Verify the selection of user1's persona and the persona itself is deleted.
+        // Verify the selection of user1's persona in the approved context is deleted.
         $this->assertFalse($DB->record_exists('block_ai_chat_personas_selected', ['id' => $selection1id]));
-        $this->assertFalse($DB->record_exists('block_ai_chat_personas', ['id' => $persona1id]));
 
-        // Verify user2's persona also has been deleted.
-        $this->assertFalse($DB->record_exists('block_ai_chat_personas', ['id' => $persona2id]));
+        // Verify the selection in the context which is not part of the approved context is still there.
+        $this->assertTrue($DB->record_exists('block_ai_chat_personas_selected', ['id' => $selection2id]));
 
-        // Verify user3's persona is not affected.
+        // Verify no persona record has been deleted.
+        $this->assertTrue($DB->record_exists('block_ai_chat_personas', ['id' => $persona1id]));
+        $this->assertTrue($DB->record_exists('block_ai_chat_personas', ['id' => $persona2id]));
         $this->assertTrue($DB->record_exists('block_ai_chat_personas', ['id' => $persona3id]));
     }
 }
