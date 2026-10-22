@@ -256,6 +256,12 @@ final class provider_test extends provider_testcase {
             'timemodified' => time(),
         ]);
 
+        // The persona of user2 is selected in the approved context as well.
+        $selection3id = $DB->insert_record('block_ai_chat_personas_selected', [
+            'contextid' => $context->id,
+            'personasid' => $persona3id,
+        ]);
+
         // Delete data for user1.
         $contextlist = provider::get_contexts_for_userid($user1->id);
         $approvedcontextlist = new approved_contextlist($user1, 'mod_aichat', $contextlist->get_contextids());
@@ -278,6 +284,9 @@ final class provider_test extends provider_testcase {
 
         // Verify the selection in the context which is not part of the approved contexts is still there.
         $this->assertTrue($DB->record_exists('block_ai_chat_personas_selected', ['id' => $selection2id]));
+
+        // Verify the selection of the persona of the other user in the approved context is still there.
+        $this->assertTrue($DB->record_exists('block_ai_chat_personas_selected', ['id' => $selection3id]));
 
         // Verify no persona record has been deleted.
         $this->assertTrue($DB->record_exists('block_ai_chat_personas', ['id' => $persona1id]));
@@ -571,6 +580,12 @@ final class provider_test extends provider_testcase {
             'timemodified' => time(),
         ]);
 
+        // The persona of user3 is selected in the approved context as well.
+        $selection3id = $DB->insert_record('block_ai_chat_personas_selected', [
+            'contextid' => $context->id,
+            'personasid' => $persona3id,
+        ]);
+
         // Delete data for user1 and user2.
         $userlist = new userlist($context, 'mod_aichat');
         $userlist->add_users([$user1->id, $user2->id]);
@@ -599,6 +614,9 @@ final class provider_test extends provider_testcase {
 
         // Verify the selection in the context which is not part of the approved context is still there.
         $this->assertTrue($DB->record_exists('block_ai_chat_personas_selected', ['id' => $selection2id]));
+
+        // Verify the selection of the persona of user3 in the approved context is still there.
+        $this->assertTrue($DB->record_exists('block_ai_chat_personas_selected', ['id' => $selection3id]));
 
         // Verify no persona record has been deleted.
         $this->assertTrue($DB->record_exists('block_ai_chat_personas', ['id' => $persona1id]));
