@@ -25,6 +25,7 @@
 
 namespace mod_aichat\privacy;
 
+use block_ai_chat\local\persona;
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
@@ -214,17 +215,15 @@ class provider implements
             foreach ($records as $record) {
                 $datawiper->anonymize_request_log_record($record);
             }
-        }
 
-        // Handle personas created by this user.
-        // Get all personas created by this user.
-        $userpersonas = $DB->get_records('block_ai_chat_personas', ['userid' => $userid]);
-
-        foreach ($userpersonas as $persona) {
-            // Delete all selections of this persona first.
-            $DB->delete_records('block_ai_chat_personas_selected', ['personasid' => $persona->id]);
-            // Then delete the persona itself.
-            $DB->delete_records('block_ai_chat_personas', ['id' => $persona->id]);
+            // Remove the selections of the personas created by this user in this context only. The persona records themselves
+            // belong to the user and not to the aichat instance and might still be in use in other contexts, so they are kept.
+            $DB->delete_records_select(
+                'block_ai_chat_personas_selected',
+                'contextid = :contextid AND personasid IN '
+                    . '(SELECT id FROM {block_ai_chat_personas} WHERE userid = :userid AND type = :type)',
+                ['contextid' => $context->id, 'userid' => $userid, 'type' => persona::TYPE_USER]
+            );
         }
     }
 
@@ -288,18 +287,15 @@ class provider implements
             $datawiper->anonymize_request_log_record($record);
         }
 
-        // Handle personas created by these users.
-        foreach ($userlist->get_userids() as $userid) {
-            $userpersonas = $DB->get_records('block_ai_chat_personas', ['userid' => $userid]);
-
-            foreach ($userpersonas as $persona) {
-                // Delete all selections of this persona first.
-                $DB->delete_records('block_ai_chat_personas_selected', ['personasid' => $persona->id]);
-                // Associated persona records must not be deleted, because they belong to the user and not the aichat instance
-                // context. They could even still be used by different aichat instances.
-                $DB->delete_records('block_ai_chat_personas', ['id' => $persona->id]);
-            }
-        }
+        // Remove the selections of the personas created by these users in this context only. The persona records themselves
+        // belong to the users and not to the aichat instance and might still be in use in other contexts, so they are kept.
+        [$userinsql, $userinparams] = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED, 'persuser');
+        $DB->delete_records_select(
+            'block_ai_chat_personas_selected',
+            "contextid = :contextid AND personasid IN "
+                . "(SELECT id FROM {block_ai_chat_personas} WHERE userid $userinsql AND type = :type)",
+            array_merge($userinparams, ['contextid' => $context->id, 'type' => persona::TYPE_USER])
+        );
     }
 
     /**
