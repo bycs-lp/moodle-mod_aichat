@@ -26,8 +26,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_aichat';
-$plugin->release = '0.3';
-$plugin->version = 2026050800;
+$plugin->release = '0.4';
+$plugin->version = 2026112700;
 $plugin->requires = 2022112800;
 $plugin->supported = [501, 503];
 $plugin->maturity = MATURITY_BETA;
